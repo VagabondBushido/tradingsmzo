@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useId, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import Admin from './Admin.jsx'
 import { Disclaimer, Privacy, Terms } from './Legal.jsx'
@@ -97,40 +97,48 @@ function Arrow() { return <span className="arrow" aria-hidden="true">↗</span> 
 
 const MARKET_VIEWS = [
   {
-    candles: [[18, 72, 44, 88], [42, 50, 34, 80], [66, 38, 30, 60], [90, 46, 40, 74], [114, 32, 24, 54], [138, 56, 42, 82], [162, 36, 28, 62], [186, 64, 50, 90], [210, 42, 32, 70], [234, 26, 20, 48], [258, 50, 38, 76], [282, 30, 22, 52], [306, 58, 44, 84], [330, 40, 30, 66], [354, 24, 18, 46]],
+    candles: [[24, 88, 58, 118], [56, 70, 48, 104], [88, 54, 40, 78], [120, 66, 50, 96], [152, 46, 32, 72], [184, 78, 56, 108], [216, 50, 36, 80], [248, 86, 64, 118], [280, 58, 42, 90]],
     bids: [88, 74, 61, 48, 34],
     asks: [36, 52, 68, 82, 94],
   },
   {
-    candles: [[18, 58, 40, 78], [42, 44, 30, 62], [66, 62, 48, 86], [90, 36, 26, 54], [114, 48, 34, 70], [138, 28, 20, 50], [162, 52, 38, 76], [186, 40, 28, 64], [210, 66, 50, 88], [234, 34, 24, 56], [258, 46, 32, 68], [282, 24, 16, 44], [306, 54, 40, 78], [330, 38, 28, 60], [354, 48, 36, 72]],
+    candles: [[24, 76, 52, 102], [56, 60, 42, 84], [88, 82, 62, 112], [120, 50, 36, 74], [152, 68, 48, 94], [184, 42, 28, 70], [216, 74, 54, 100], [248, 56, 40, 86], [280, 70, 50, 98]],
     bids: [70, 62, 50, 41, 28],
     asks: [44, 58, 72, 86, 96],
   },
   {
-    candles: [[18, 40, 28, 62], [42, 64, 46, 88], [66, 30, 22, 50], [90, 52, 38, 74], [114, 24, 16, 42], [138, 46, 32, 68], [162, 70, 52, 90], [186, 34, 24, 56], [210, 50, 36, 72], [234, 22, 14, 40], [258, 58, 42, 80], [282, 38, 26, 60], [306, 28, 18, 48], [330, 54, 40, 76], [354, 32, 22, 52]],
+    candles: [[24, 58, 40, 84], [56, 86, 62, 118], [88, 44, 30, 70], [120, 72, 50, 98], [152, 36, 24, 62], [184, 64, 44, 90], [216, 92, 68, 120], [248, 50, 34, 78], [280, 68, 46, 94]],
     bids: [96, 80, 66, 44, 30],
     asks: [32, 48, 64, 78, 90],
   },
   {
-    candles: [[18, 50, 36, 70], [42, 36, 26, 58], [66, 54, 40, 76], [90, 28, 20, 48], [114, 62, 46, 84], [138, 40, 30, 64], [162, 24, 16, 44], [186, 48, 34, 70], [210, 32, 22, 54], [234, 58, 44, 80], [258, 26, 18, 46], [282, 44, 32, 66], [306, 36, 24, 58], [330, 52, 38, 74], [354, 30, 20, 50]],
+    candles: [[24, 70, 50, 96], [56, 52, 36, 80], [88, 76, 54, 104], [120, 42, 28, 68], [152, 84, 60, 114], [184, 58, 40, 86], [216, 38, 24, 64], [248, 66, 46, 92], [280, 48, 32, 74]],
     bids: [60, 52, 44, 36, 24],
     asks: [50, 62, 74, 84, 94],
   },
 ]
 
 function Candles({ className, bars = MARKET_VIEWS[0].candles }) {
+  const uid = useId().replace(/:/g, '')
   return (
-    <svg className={className} viewBox="0 0 380 110" aria-hidden="true">
-      <path className="grid" d="M0 28H380M0 55H380M0 82H380" />
+    <svg className={className} viewBox="0 0 320 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <linearGradient id={`chartGlow-${uid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3dd68c" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#3dd68c" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <path className="grid" d="M0 38H320M0 75H320M0 112H320" />
+      <path className="chart-wash" d="M16 150 L16 88 L52 70 L88 96 L124 58 L160 74 L196 48 L232 80 L268 42 L304 64 L304 150 Z" fill={`url(#chartGlow-${uid})`} />
       {bars.map(([x, open, high, low], index) => {
         const up = index % 3 !== 1
         const color = up ? '#3dd68c' : '#f0616d'
-        const bodyH = Math.max(Math.abs(open - (up ? open - 14 : open + 14)), 8)
-        const y = Math.min(Math.max(up ? open - bodyH : open, 8), 92)
+        const bodyH = Math.max(Math.abs(open - (up ? open - 18 : open + 18)), 10)
+        const y = Math.min(Math.max(up ? open - bodyH : open, 12), 118)
         return (
-          <g key={x} className="candle" style={{ animationDelay: `${index * 40}ms` }}>
-            <line x1={x} x2={x} y1={high} y2={low} stroke={color} strokeWidth="1.5" />
-            <rect x={x - 4} y={y} width="8" height={bodyH} fill={color} rx="1" />
+          <g key={`${x}-${index}`} className="candle" style={{ animationDelay: `${80 + index * 55}ms` }}>
+            <line x1={x} x2={x} y1={high} y2={low} stroke={color} strokeWidth="2" strokeLinecap="round" />
+            <rect x={x - 5} y={y} width="10" height={bodyH} fill={color} rx="2" />
           </g>
         )
       })}
@@ -160,31 +168,25 @@ function HeroDesk() {
   return (
     <div className="hero-art">
       <div className="desk">
-        <div className="desk-top">
-          <div className="pair-tabs" role="tablist" aria-label="Illustrative market pairs">
-            {ASSETS.slice(0, 4).map((item, index) => (
-              <button type="button" role="tab" aria-selected={pair === index} key={item.ticker} className={pair === index ? 'on' : ''} onClick={() => setPair(index)}>
-                <item.Icon className="mini-asset" /> {item.ticker}
-              </button>
-            ))}
-          </div>
-          <em>Illustrative · not live prices</em>
-        </div>
         <div className="desk-pair">
           <asset.Icon className="desk-logo" />
           <div>
             <strong>{asset.pair}</strong>
-            <small>{asset.name} market structure</small>
+            <small>Illustrative structure</small>
           </div>
           <span className="sim-tag">SIM</span>
         </div>
-        <Candles key={pair} className="desk-chart" bars={view.candles} />
-        <OrderBook key={`book-${pair}`} bids={view.bids} asks={view.asks} />
-        <div className="desk-foot">
-          <span>Order book</span>
-          <span>Spread &amp; liquidity</span>
-          <span>Risk first</span>
+        <div className="desk-stage">
+          <Candles key={pair} className="desk-chart" bars={view.candles} />
         </div>
+        <div className="pair-tabs" role="tablist" aria-label="Illustrative market pairs">
+          {ASSETS.slice(0, 4).map((item, index) => (
+            <button type="button" role="tab" aria-selected={pair === index} key={item.ticker} className={pair === index ? 'on' : ''} onClick={() => setPair(index)}>
+              <item.Icon className="mini-asset" /> {item.ticker}
+            </button>
+          ))}
+        </div>
+        <OrderBook key={`book-${pair}`} bids={view.bids} asks={view.asks} />
       </div>
       <div className="float-stack" aria-hidden="true">
         <div className="float-pill pill-one"><Btc className="mini-asset" /> BTC · store of value</div>
@@ -213,14 +215,21 @@ function ScrollCanvas() {
       ['The decision', 'Then you act with a process — and risk in view.'],
     ]
     const apply = (progress) => {
-      const rotateY = -26 + progress * 52
-      const rotateX = 12 - progress * 20
-      const scale = 0.92 + progress * 0.08
+      const phone = window.matchMedia('(max-width: 760px)').matches
       if (deviceRef.current) {
-        deviceRef.current.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`
+        if (phone) {
+          const lift = 12 - progress * 24
+          const scale = 0.96 + progress * 0.04
+          deviceRef.current.style.transform = `translateY(${lift}px) scale(${scale})`
+        } else {
+          const rotateY = -26 + progress * 52
+          const rotateX = 12 - progress * 20
+          const scale = 0.92 + progress * 0.08
+          deviceRef.current.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`
+        }
       }
       if (orbitRef.current) {
-        orbitRef.current.style.transform = `rotate(${progress * 28}deg)`
+        orbitRef.current.style.transform = phone ? 'none' : `rotate(${progress * 28}deg)`
       }
       const stage = progress < 0.34 ? 0 : progress < 0.67 ? 1 : 2
       layersRef.current.forEach((layer, index) => {
