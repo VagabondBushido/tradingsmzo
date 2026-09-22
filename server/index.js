@@ -54,7 +54,7 @@ app.post('/api/create-order', async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Enter a valid name, email and 10-digit mobile number.' })
     }
     const order = await createCourseOrder(details)
-    notifyLeadSafe({
+    await notifyLeadSafe({
       status: 'checkout_started',
       name: details.name,
       email: details.email,
@@ -86,7 +86,7 @@ app.post('/api/verify-payment', async (req, res) => {
     }
     const order = await fetchCourseOrder(razorpay_order_id)
     const payment = await confirmCapturedPayment(razorpay_payment_id, order.amount)
-    notifyLeadSafe({
+    await notifyLeadSafe({
       status: 'paid',
       name: order.notes?.customer_name,
       email: order.notes?.customer_email || payment.email,
