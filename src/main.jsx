@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import Admin from './Admin.jsx'
 import { Disclaimer, Privacy, Terms } from './Legal.jsx'
 import Seo, { bootAnalytics, trackPurchase } from './seo.js'
 import { SITE } from './site.js'
+import { ASSETS, Btc, Eth, Nft, Sol, Usdt } from './icons.jsx'
 import './styles.css'
 
 const topics = [
@@ -94,6 +95,232 @@ const priceBenefits = [
 
 function Arrow() { return <span className="arrow" aria-hidden="true">↗</span> }
 
+const MARKET_VIEWS = [
+  {
+    candles: [[18, 72, 44, 88], [42, 50, 34, 80], [66, 38, 30, 60], [90, 46, 40, 74], [114, 32, 24, 54], [138, 56, 42, 82], [162, 36, 28, 62], [186, 64, 50, 90], [210, 42, 32, 70], [234, 26, 20, 48], [258, 50, 38, 76], [282, 30, 22, 52], [306, 58, 44, 84], [330, 40, 30, 66], [354, 24, 18, 46]],
+    bids: [88, 74, 61, 48, 34],
+    asks: [36, 52, 68, 82, 94],
+  },
+  {
+    candles: [[18, 58, 40, 78], [42, 44, 30, 62], [66, 62, 48, 86], [90, 36, 26, 54], [114, 48, 34, 70], [138, 28, 20, 50], [162, 52, 38, 76], [186, 40, 28, 64], [210, 66, 50, 88], [234, 34, 24, 56], [258, 46, 32, 68], [282, 24, 16, 44], [306, 54, 40, 78], [330, 38, 28, 60], [354, 48, 36, 72]],
+    bids: [70, 62, 50, 41, 28],
+    asks: [44, 58, 72, 86, 96],
+  },
+  {
+    candles: [[18, 40, 28, 62], [42, 64, 46, 88], [66, 30, 22, 50], [90, 52, 38, 74], [114, 24, 16, 42], [138, 46, 32, 68], [162, 70, 52, 90], [186, 34, 24, 56], [210, 50, 36, 72], [234, 22, 14, 40], [258, 58, 42, 80], [282, 38, 26, 60], [306, 28, 18, 48], [330, 54, 40, 76], [354, 32, 22, 52]],
+    bids: [96, 80, 66, 44, 30],
+    asks: [32, 48, 64, 78, 90],
+  },
+  {
+    candles: [[18, 50, 36, 70], [42, 36, 26, 58], [66, 54, 40, 76], [90, 28, 20, 48], [114, 62, 46, 84], [138, 40, 30, 64], [162, 24, 16, 44], [186, 48, 34, 70], [210, 32, 22, 54], [234, 58, 44, 80], [258, 26, 18, 46], [282, 44, 32, 66], [306, 36, 24, 58], [330, 52, 38, 74], [354, 30, 20, 50]],
+    bids: [60, 52, 44, 36, 24],
+    asks: [50, 62, 74, 84, 94],
+  },
+]
+
+function Candles({ className, bars = MARKET_VIEWS[0].candles }) {
+  return (
+    <svg className={className} viewBox="0 0 380 110" aria-hidden="true">
+      <path className="grid" d="M0 28H380M0 55H380M0 82H380" />
+      {bars.map(([x, open, high, low], index) => {
+        const up = index % 3 !== 1
+        const color = up ? '#3dd68c' : '#f0616d'
+        const bodyH = Math.max(Math.abs(open - (up ? open - 14 : open + 14)), 8)
+        const y = Math.min(Math.max(up ? open - bodyH : open, 8), 92)
+        return (
+          <g key={x} className="candle" style={{ animationDelay: `${index * 40}ms` }}>
+            <line x1={x} x2={x} y1={high} y2={low} stroke={color} strokeWidth="1.5" />
+            <rect x={x - 4} y={y} width="8" height={bodyH} fill={color} rx="1" />
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+function OrderBook({ bids, asks }) {
+  return (
+    <div className="book">
+      <div className="book-col">
+        <span>Bid</span>
+        {bids.map((width, index) => <b key={`b${index}`} className="bid" style={{ width: `${width}%`, animationDelay: `${index * 0.08}s` }} />)}
+      </div>
+      <div className="book-col">
+        <span>Ask</span>
+        {asks.map((width, index) => <b key={`a${index}`} className="ask" style={{ width: `${width}%`, animationDelay: `${index * 0.08}s` }} />)}
+      </div>
+    </div>
+  )
+}
+
+function HeroDesk() {
+  const [pair, setPair] = useState(0)
+  const asset = ASSETS[pair]
+  const view = MARKET_VIEWS[pair]
+  return (
+    <div className="hero-art">
+      <div className="desk">
+        <div className="desk-top">
+          <div className="pair-tabs" role="tablist" aria-label="Illustrative market pairs">
+            {ASSETS.slice(0, 4).map((item, index) => (
+              <button type="button" role="tab" aria-selected={pair === index} key={item.ticker} className={pair === index ? 'on' : ''} onClick={() => setPair(index)}>
+                <item.Icon className="mini-asset" /> {item.ticker}
+              </button>
+            ))}
+          </div>
+          <em>Illustrative · not live prices</em>
+        </div>
+        <div className="desk-pair">
+          <asset.Icon className="desk-logo" />
+          <div>
+            <strong>{asset.pair}</strong>
+            <small>{asset.name} market structure</small>
+          </div>
+          <span className="sim-tag">SIM</span>
+        </div>
+        <Candles key={pair} className="desk-chart" bars={view.candles} />
+        <OrderBook key={`book-${pair}`} bids={view.bids} asks={view.asks} />
+        <div className="desk-foot">
+          <span>Order book</span>
+          <span>Spread &amp; liquidity</span>
+          <span>Risk first</span>
+        </div>
+      </div>
+      <div className="float-stack" aria-hidden="true">
+        <div className="float-pill pill-one"><Btc className="mini-asset" /> BTC · store of value</div>
+        <div className="float-pill pill-two"><Eth className="mini-asset" /> ETH · smart contracts</div>
+        <div className="float-pill pill-three"><Sol className="mini-asset" /> SOL · high throughput</div>
+      </div>
+    </div>
+  )
+}
+
+function ScrollCanvas() {
+  const trackRef = useRef(null)
+  const deviceRef = useRef(null)
+  const orbitRef = useRef(null)
+  const captionRef = useRef(null)
+  const titleRef = useRef(null)
+  const dotsRef = useRef([])
+  const layersRef = useRef([])
+  const lastStage = useRef(-1)
+
+  useEffect(() => {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const captions = [
+      ['The chart', 'Price is what you see last.'],
+      ['The chain', 'Underneath is technology and flow.'],
+      ['The decision', 'Then you act with a process — and risk in view.'],
+    ]
+    const apply = (progress) => {
+      const rotateY = -26 + progress * 52
+      const rotateX = 12 - progress * 20
+      const scale = 0.92 + progress * 0.08
+      if (deviceRef.current) {
+        deviceRef.current.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`
+      }
+      if (orbitRef.current) {
+        orbitRef.current.style.transform = `rotate(${progress * 28}deg)`
+      }
+      const stage = progress < 0.34 ? 0 : progress < 0.67 ? 1 : 2
+      layersRef.current.forEach((layer, index) => {
+        if (!layer) return
+        const active = index === stage
+        layer.style.opacity = active ? '1' : '0'
+        layer.style.visibility = active ? 'visible' : 'hidden'
+        layer.style.pointerEvents = active ? 'auto' : 'none'
+        layer.setAttribute('aria-hidden', active ? 'false' : 'true')
+      })
+      if (lastStage.current !== stage) {
+        lastStage.current = stage
+        if (titleRef.current) titleRef.current.textContent = captions[stage][0]
+        if (captionRef.current) captionRef.current.textContent = captions[stage][1]
+        dotsRef.current.forEach((dot, index) => {
+          if (dot) dot.classList.toggle('on', index === stage)
+        })
+      }
+    }
+
+    if (reduced) {
+      apply(0.5)
+      return undefined
+    }
+
+    let frame = 0
+    const update = () => {
+      const el = trackRef.current
+      if (!el) return
+      const total = Math.max(el.offsetHeight - window.innerHeight, 1)
+      const scrolled = Math.min(Math.max(-el.getBoundingClientRect().top, 0), total)
+      apply(scrolled / total)
+    }
+    const onScroll = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(update)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll, { passive: true })
+    update()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
+  return (
+    <section className="scroll-stage" ref={trackRef} aria-label="How the market sits together">
+      <div className="scroll-stage-sticky">
+        <p className="section-label">Watch the pieces turn</p>
+        <div className="orbit" ref={orbitRef} aria-hidden="true">
+          <Btc className="orbit-icon orbit-a" />
+          <Eth className="orbit-icon orbit-b" />
+          <Sol className="orbit-icon orbit-c" />
+          <Nft className="orbit-icon orbit-d" />
+          <Usdt className="orbit-icon orbit-e" />
+        </div>
+        <div className="flip-device" ref={deviceRef}>
+          <div className="flip-face">
+            <div className="card-top"><span ref={titleRef}>The chart</span><span className="green">Illustrative</span></div>
+            <div className="flip-stack">
+              <div className="flip-layer is-on" ref={(node) => { layersRef.current[0] = node }}>
+                <Candles className="flip-chart" />
+              </div>
+              <div className="flip-layer" ref={(node) => { layersRef.current[1] = node }}>
+                <div className="chain-row">
+                  <div className="block-chip"><Btc className="mini-asset" /> Block</div>
+                  <i />
+                  <div className="block-chip"><Eth className="mini-asset" /> Ledger</div>
+                  <i />
+                  <div className="block-chip"><Sol className="mini-asset" /> Wallet</div>
+                </div>
+                <div className="node-map">
+                  {['On-chain', 'CEX / DEX', 'NFT', 'Order', 'Fill', 'Risk'].map((node) => (
+                    <span key={node}>{node}</span>
+                  ))}
+                </div>
+              </div>
+              <div className="flip-layer" ref={(node) => { layersRef.current[2] = node }}>
+                <div className="risk-board">
+                  <div className="size-bar"><span style={{ width: '28%' }} /><label>Position size</label></div>
+                  <div className="size-bar stop"><span style={{ width: '18%' }} /><label>Stop loss</label></div>
+                  <div className="size-bar rr"><span style={{ width: '62%' }} /><label>Risk-to-reward</label></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p className="flip-caption" ref={captionRef}>Price is what you see last.</p>
+        <div className="flip-dots" aria-hidden="true">
+          {[0, 1, 2].map((index) => (
+            <b key={index} ref={(node) => { dotsRef.current[index] = node }} className={index === 0 ? 'on' : ''} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function loadRazorpay() {
   if (window.Razorpay) return Promise.resolve()
   return new Promise((resolve, reject) => {
@@ -120,10 +347,19 @@ function App() {
 
   useEffect(() => {
     bootAnalytics()
-    const closeOnEscape = (event) => event.key === 'Escape' && setModalOpen(false)
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      setModalOpen(false)
+      setMenuOpen(false)
+    }
     document.addEventListener('keydown', closeOnEscape)
     return () => document.removeEventListener('keydown', closeOnEscape)
   }, [])
+
+  useEffect(() => {
+    document.body.classList.toggle('modal-open', modalOpen)
+    return () => document.body.classList.remove('modal-open')
+  }, [modalOpen])
 
   useEffect(() => {
     const nodes = document.querySelectorAll('.reveal-on-scroll')
@@ -180,7 +416,7 @@ function App() {
         order_id: order.orderId,
         prefill: order.prefill,
         notes: { product: 'crypto-webinar' },
-        theme: { color: '#c5ff42' },
+        theme: { color: '#f7931a' },
         handler: async (response) => {
           try {
             setStatus('verifying')
@@ -227,7 +463,7 @@ function App() {
     name: SITE.course,
     description: SITE.description,
     eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
-    organizer: { '@type': 'Organization', name: SITE.name, url: SITE.url },
+    organizer: { '@type': 'Organization', name: SITE.name, url: SITE.url, email: SITE.email, telephone: SITE.phone },
     performer: { '@type': 'Person', name: SITE.educator },
     offers: { '@type': 'Offer', price: String(priceValue), priceCurrency: 'INR', availability: 'https://schema.org/InStock', url: SITE.url },
   }
@@ -236,10 +472,11 @@ function App() {
     <Seo title="Understanding Crypto Before You Trade | Live Webinar" description={SITE.description} jsonLd={jsonLd} />
     <div className="ambient ambient-one" />
     <div className="ambient ambient-two" />
-    <header className="nav wrap">
+    <header className="nav-shell">
+    <div className="nav wrap">
       <a href="#top" className="brand" aria-label={`${SITE.name} home`}><span className="brand-mark">S</span> {SITE.name.toUpperCase()}</a>
-      <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-label="Toggle menu">{menuOpen ? '×' : '☰'}</button>
-      <nav className={menuOpen ? 'nav-links open' : 'nav-links'}>
+      <button className="menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-expanded={menuOpen} aria-controls="site-nav" aria-label="Toggle menu">{menuOpen ? '×' : '☰'}</button>
+      <nav id="site-nav" className={menuOpen ? 'nav-links open' : 'nav-links'}>
         <a href="#overview" onClick={() => setMenuOpen(false)}>Overview</a>
         <a href="#curriculum" onClick={() => setMenuOpen(false)}>Curriculum</a>
         <a href="#outcomes" onClick={() => setMenuOpen(false)}>What you’ll learn</a>
@@ -248,6 +485,7 @@ function App() {
         <a href="#disclaimer" onClick={() => setMenuOpen(false)}>Disclaimer</a>
         <button className="text-button" onClick={enroll}>Join — {priceLabel}</button>
       </nav>
+    </div>
     </header>
 
     <main id="top">
@@ -255,38 +493,51 @@ function App() {
         <div className="hero-copy reveal">
           <p className="eyebrow"><span /> Live educational webinar</p>
           <h1>Understanding crypto<br /><em>before</em> you trade.</h1>
-          <p className="hero-lede">Understand the system behind the market — not just the price chart.</p>
-          <p className="hero-text">A practical webinar designed to help you understand crypto, blockchain, market mechanics, trading, risk management, and trading psychology from the ground up.</p>
+          <p className="hero-lede">Read the market the way a desk does — pairs, order books, and risk — not just a green line.</p>
+          <p className="hero-text">A practical webinar on Bitcoin, Ethereum, Solana, NFTs, blockchain, CEX vs DEX, trading mechanics, and the psychology that sits behind a click.</p>
           <div className="hero-actions">
             <button className="primary-button" onClick={enroll}>{cta} <Arrow /></button>
             <a className="watch-link" href="#curriculum"><span className="play">▶</span> Explore the curriculum</a>
           </div>
-          <p className="hero-note">Educational webinar only. No financial advice. No guaranteed profits or returns.</p>
-        </div>
-        <div className="hero-art" aria-hidden="true">
-          <div className="hero-grid" />
-          <div className="chart-card mechanics-card">
-            <div className="card-top"><span>Market mechanics</span><span className="green">Education</span></div>
-            <div className="node-flow">
-              {['Money', 'Chain', 'Market', 'Price', 'Risk', 'Decision'].map((label, index) => (
-                <span key={label} className="node-chip" style={{ animationDelay: `${index * 0.12}s` }}>{label}</span>
-              ))}
-            </div>
-            <svg viewBox="0 0 430 128" role="img" aria-label="Abstract market structure">
-              <path className="grid" d="M0 32H430M0 64H430M0 96H430M54 0V128M162 0V128M270 0V128M378 0V128" />
-              <path className="chart-line" d="M0 88 L70 74 L120 82 L180 52 L240 60 L300 34 L360 44 L430 22" />
-            </svg>
-            <div className="card-bottom"><span>Structure</span><span>Context</span><span>Risk</span></div>
+          <div className="trust-row">
+            <span>Razorpay checkout</span>
+            <i />
+            <span>Education only</span>
+            <i />
+            <span>India support</span>
           </div>
+          <p className="hero-note">No financial advice. No guaranteed profits or returns. Charts on this page are illustrative.</p>
+        </div>
+        <HeroDesk />
+      </section>
+
+      <section className="ticker" aria-label="Markets studied">
+        <div>
+          {['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'NFT', 'CEX', 'DEX', 'ORDER BOOK', 'LIQUIDITY', 'RISK', 'PSYCHOLOGY'].concat(['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'NFT', 'CEX', 'DEX']).map((item, index) => (
+            <span key={`${item}-${index}`}>{item}<b>·</b></span>
+          ))}
         </div>
       </section>
 
-      <section className="ticker" aria-label="Learning journey"><div>MONEY <b>→</b> BLOCKCHAIN <b>→</b> CRYPTO <b>→</b> MARKETS <b>→</b> PRICE <b>→</b> TRADING <b>→</b> RISK <b>→</b> PSYCHOLOGY <b>→</b> ANALYSIS <b>→</b> MONEY <b>→</b> BLOCKCHAIN <b>→</b> CRYPTO <b>→</b></div></section>
+      <section className="tape" aria-hidden="true">
+        <div>
+          {['BTC fill', 'ETH bid', 'SOL ask', 'USDT settle', 'NFT mint', 'CEX order', 'DEX swap', 'Stop placed', 'Size checked'].concat(['BTC fill', 'ETH bid', 'SOL ask', 'USDT settle']).map((item, index) => (
+            <span key={`${item}-${index}`}>{item}</span>
+          ))}
+        </div>
+      </section>
+
+      <ScrollCanvas />
 
       <section id="overview" className="wrap section reveal-on-scroll">
         <p className="section-label">01 — The foundation</p>
         <h2>Understanding crypto before you trade</h2>
         <p className="lead">A practical webinar to understand the technology, ecosystem, market mechanics, trading concepts, risk management, and psychology behind crypto markets.</p>
+        <div className="asset-row" aria-hidden="true">
+          {ASSETS.map((asset) => (
+            <span key={asset.ticker}><asset.Icon className="mini-asset" /> {asset.ticker}</span>
+          ))}
+        </div>
         <div className="topic-grid">
           {topics.map(([number, title]) => (
             <article className="topic-card" key={title}><span>{number}</span><h3>{title}</h3></article>
@@ -316,7 +567,7 @@ function App() {
         <h2>Crypto isn’t just a chart.</h2>
         <p className="lead">Behind every market move are multiple forces and mechanisms.</p>
         <div className="force-grid">
-          {forces.map((item) => <article key={item}>{item}</article>)}
+          {forces.map((item) => <article key={item}><span className="force-dot" />{item}</article>)}
         </div>
         <blockquote className="statement">Don’t just look at what price is doing. Understand what is happening underneath it.</blockquote>
       </section>
@@ -359,6 +610,11 @@ function App() {
         <h2>The pieces connect.</h2>
         <p className="lead">This is not designed to be another collection of disconnected crypto definitions. The webinar connects the concepts into one learning journey.</p>
         <div className="connect-flow">{journey.map((step) => <span key={step}>{step}</span>)}</div>
+        <ol className="life-line" aria-label="How a decision is studied">
+          {['Idea', 'Research', 'Order book', 'Fill', 'Risk review'].map((step, index) => (
+            <li key={step}><b>{String(index + 1).padStart(2, '0')}</b>{step}</li>
+          ))}
+        </ol>
         <p className="large-line">You learn how the pieces connect.</p>
         </div>
       </section>
@@ -395,6 +651,12 @@ function App() {
         <p className="section-label">10 — After the webinar</p>
         <h2>Ask better questions.</h2>
         <p className="swap">Instead of only asking: <em>“Which coin should I buy?”</em></p>
+        <div className="psyche" aria-hidden="true">
+          <span>Fear</span>
+          <div className="psyche-track"><i /></div>
+          <span>Discipline</span>
+        </div>
+        <p className="psyche-note">Emotions sit on a spectrum. The webinar maps them — it does not score you.</p>
         <ol className="questions">{betterQuestions.map((item) => <li key={item}>{item}</li>)}</ol>
         <blockquote className="statement">The goal isn’t to make decisions for you. It’s to help you build a better process for making your own decisions.</blockquote>
       </section>
@@ -434,6 +696,7 @@ function App() {
             <p className="price-amount">{priceLabel}</p>
             <p className="price-note">INR · one-time registration</p>
             <button className="primary-button modal-button" onClick={enroll}>{cta} <Arrow /></button>
+            <p className="support-line">Support: <a href={SITE.phoneHref}>{SITE.phone}</a><br /><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
             <small>Educational webinar only. No financial advice. No guaranteed profits or returns.</small>
           </aside>
         </div>
@@ -445,6 +708,7 @@ function App() {
           <h2>Stop chasing<br />the next coin.</h2>
           <p>Start understanding the market. Learn · Research · Analyze · Manage Risk</p>
           <button className="primary-button light" onClick={enroll}>Join the webinar — {priceLabel} <Arrow /></button>
+          <p className="support-line dark">Rights &amp; support · <a href={SITE.phoneHref}>{SITE.phone}</a> · <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
         </div>
       </section>
 
@@ -485,12 +749,13 @@ function App() {
         <a href="/disclaimer">Disclaimer</a>
         <a href="/privacy">Privacy</a>
         <a href="/terms">Terms</a>
-        <a href={`mailto:${SITE.email}`}>Contact</a>
+        <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+        <a href={SITE.phoneHref}>{SITE.phone}</a>
       </nav>
-      <p>© {new Date().getFullYear()} {SITE.name}. Educational webinar only. Not financial advice. Cryptocurrency trading involves substantial risk of loss.</p>
+      <p>© {new Date().getFullYear()} {SITE.name}. Educational webinar only. Not financial advice. Cryptocurrency trading involves substantial risk of loss. Support: {SITE.phone} · {SITE.email}</p>
     </footer>
 
-    <div className="sticky-cta">
+    <div className={`sticky-cta${modalOpen ? ' hide' : ''}`}>
       <span>Live webinar · {priceLabel}</span>
       <button className="primary-button" onClick={enroll}>Join <Arrow /></button>
     </div>
@@ -514,7 +779,7 @@ function App() {
           <p>Pay with Razorpay. UPI, cards, net banking, and wallets. Access unlocks after signature verification.</p>
           {checkoutReady ? (
             <form className="checkout-form" onSubmit={openCheckout}>
-              <label>Full name<input required minLength={2} value={form.name} onChange={updateField('name')} autoComplete="name" /></label>
+              <label>Full name<input required minLength={2} value={form.name} onChange={updateField('name')} autoComplete="name" autoFocus /></label>
               <label>Email<input required type="email" value={form.email} onChange={updateField('email')} autoComplete="email" /></label>
               <label>Mobile<input required inputMode="numeric" pattern="[0-9]{10}" maxLength={10} value={form.contact} onChange={updateField('contact')} autoComplete="tel" placeholder="10-digit Indian mobile" /></label>
               {error && <div className="pay-error">{error}</div>}

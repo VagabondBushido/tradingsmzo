@@ -41,7 +41,7 @@ export function Privacy() {
       <h2>Your rights</h2>
       <p>You may request access, correction, or deletion of your personal data by emailing <a href={`mailto:${SITE.email}`}>{SITE.email}</a>, subject to legal record-keeping requirements.</p>
       <h2>Contact</h2>
-      <p>{SITE.name}, India. Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>.</p>
+      <p>{SITE.name}, India. Email: <a href={`mailto:${SITE.email}`}>{SITE.email}</a>. Phone: <a href={SITE.phoneHref}>{SITE.phone}</a>.</p>
     </Page>
   )
 }
@@ -63,7 +63,7 @@ export function Terms() {
       <h2>Liability</h2>
       <p>The course is provided as-is for education. We are not liable for trading losses, missed profits, or decisions you make using the material. See the Disclaimer.</p>
       <h2>Contact</h2>
-      <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      <p><a href={`mailto:${SITE.email}`}>{SITE.email}</a> · <a href={SITE.phoneHref}>{SITE.phone}</a></p>
     </Page>
   )
 }
@@ -88,7 +88,7 @@ export function Disclaimer() {
       <h2>Participant Responsibility</h2>
       <p>Any decision to trade, invest, use leverage, or otherwise act on information discussed in the webinar is made solely by the participant at their own risk and responsibility.</p>
       <p>By registering for or attending the webinar, participants acknowledge that they understand and accept the educational nature of the webinar.</p>
-      <p>Questions: <a href={`mailto:${SITE.email}`}>{SITE.email}</a></p>
+      <p>Questions: <a href={`mailto:${SITE.email}`}>{SITE.email}</a> · <a href={SITE.phoneHref}>{SITE.phone}</a></p>
     </Page>
   )
 }

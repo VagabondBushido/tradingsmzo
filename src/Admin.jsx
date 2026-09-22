@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Seo from './seo.js'
+import { SITE } from './site.js'
 
 function Arrow() { return <span className="arrow" aria-hidden="true">↗</span> }
 
@@ -48,7 +49,7 @@ export default function Admin() {
       <Seo title="Admin | Trading Samzo" description="Private course admin." noIndex />
       <div className="ambient ambient-one" />
       <header className="nav wrap">
-        <a href="/" className="brand"><span className="brand-mark">C</span> CRYPTO CLARITY</a>
+        <a href="/" className="brand"><span className="brand-mark">S</span> {SITE.name.toUpperCase()}</a>
         <a className="watch-link" href="/">Back to site</a>
       </header>
       <section className="checkout-modal admin-card">
