@@ -40,6 +40,7 @@ app.use(express.json({ limit: '32kb' }))
 
 app.get('/api/checkout-config', async (_req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate')
     return res.json({ ok: true, ...(await getCheckoutConfig()) })
   } catch (error) {
     return res.status(error.status || 500).json({ ok: false, error: error.message })

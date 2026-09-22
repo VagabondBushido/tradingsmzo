@@ -140,7 +140,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/checkout-config')
+    fetch('/api/checkout-config', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
         if (data.ok) {

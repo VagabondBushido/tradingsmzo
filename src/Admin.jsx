@@ -12,7 +12,7 @@ export default function Admin() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/checkout-config')
+    fetch('/api/checkout-config', { cache: 'no-store' })
       .then((response) => response.json())
       .then((data) => {
         if (!data.ok) return
@@ -54,7 +54,7 @@ export default function Admin() {
       <section className="checkout-modal admin-card">
         <p className="section-label">ADMIN</p>
         <h2>Change course price</h2>
-        <p>Update the live checkout amount and the WhatsApp group shown after payment. No redeploy needed.</p>
+        <p>Update the live checkout amount and the WhatsApp group shown after payment. After saving, refresh the homepage to see the new price.</p>
         {loading ? <p>Loading current price…</p> : (
           <form className="checkout-form" onSubmit={save}>
             <label>Course price (INR)
