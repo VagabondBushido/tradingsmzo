@@ -1,4 +1,6 @@
+import { checkPassword, sendJson } from '../lib/admin.js'
 import { notifyLeadSafe } from '../lib/notify.js'
+import { getSettings, saveSettings } from '../lib/settings.js'
 import {
   confirmCapturedPayment,
   createCourseOrder,
@@ -9,14 +11,48 @@ import {
 } from '../lib/payments.js'
 
 function send(res, status, payload) {
-  res.status(status).json(payload)
+  sendJson(res, status, payload)
 }
 
 export async function handleCheckoutConfig(_req, res) {
   try {
-    send(res, 200, { ok: true, ...getCheckoutConfig() })
+    send(res, 200, { ok: true, ...(await getCheckoutConfig()) })
   } catch (error) {
     send(res, error.status || 500, { ok: false, error: error.message })
+  }
+}
+
+export async function handleAdminLogin(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'Method not allowed' })
+  if (!checkPassword(req.body?.password)) {
+    return send(res, 401, { ok: false, error: 'Wrong password' })
+  }
+  const settings = await getSettings()
+  send(res, 200, { ok: true, priceInr: settings.priceInr, accessUrl: settings.accessUrl, priceLabel: settings.priceLabel })
+}
+
+export async function handleAdminLogout(req, res) {
+  if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'Method not allowed' })
+  send(res, 200, { ok: true })
+}
+
+export async function handleAdminSettings(req, res) {
+  try {
+    if (req.method === 'GET') {
+      const settings = await getSettings()
+      return send(res, 200, { ok: true, priceInr: settings.priceInr, accessUrl: settings.accessUrl, priceLabel: settings.priceLabel })
+    }
+    if (req.method !== 'POST') return send(res, 405, { ok: false, error: 'Method not allowed' })
+    if (!checkPassword(req.body?.password)) {
+      return send(res, 401, { ok: false, error: 'Wrong password' })
+    }
+    const settings = await saveSettings({
+      priceInr: req.body?.priceInr,
+      accessUrl: req.body?.accessUrl,
+    })
+    send(res, 200, { ok: true, priceInr: settings.priceInr, accessUrl: settings.accessUrl, priceLabel: settings.priceLabel })
+  } catch (error) {
+    send(res, error.status || 500, { ok: false, error: error.message || 'Could not save settings' })
   }
 }
 
@@ -35,7 +71,7 @@ export async function handleCreateOrder(req, res) {
       contact: details.contact,
       orderId: order.id,
     })
-    const { keyId } = getCheckoutConfig()
+    const { keyId } = await getCheckoutConfig()
     send(res, 200, {
       ok: true,
       keyId,
@@ -59,8 +95,8 @@ export async function handleVerifyPayment(req, res) {
     if (!verifyCheckoutSignature({ razorpay_order_id, razorpay_payment_id, razorpay_signature })) {
       return send(res, 400, { ok: false, error: 'Payment signature verification failed' })
     }
-    const payment = await confirmCapturedPayment(razorpay_payment_id)
     const order = await fetchCourseOrder(razorpay_order_id)
+    const payment = await confirmCapturedPayment(razorpay_payment_id, order.amount)
     notifyLeadSafe({
       status: 'paid',
       name: order.notes?.customer_name,
@@ -73,7 +109,7 @@ export async function handleVerifyPayment(req, res) {
       ok: true,
       paymentId: payment.id,
       orderId: razorpay_order_id,
-      accessUrl: process.env.COURSE_ACCESS_URL || '',
+      accessUrl: (await getSettings()).accessUrl,
     })
   } catch (error) {
     send(res, error.status || 500, { ok: false, error: error.message || 'Payment verification failed' })

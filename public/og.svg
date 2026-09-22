@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#090a0c"/>
+  <rect x="0" y="0" width="1200" height="630" fill="url(#g)" opacity="0.5"/>
+  <defs>
+    <linearGradient id="g" x1="1" y1="0" x2="0" y2="1">
+      <stop stop-color="#c5ff42" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#090a0c" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <text x="80" y="140" fill="#c5ff42" font-family="ui-monospace, monospace" font-size="18" letter-spacing="8">LIVE EDUCATIONAL WEBINAR</text>
+  <text x="80" y="250" fill="#f4f3ed" font-family="Georgia, serif" font-size="58">Understanding Crypto</text>
+  <text x="80" y="322" fill="#f4f3ed" font-family="Georgia, serif" font-size="58">Before You Trade</text>
+  <text x="80" y="420" fill="#a8aaa4" font-family="system-ui, sans-serif" font-size="26">Understand the system behind the market — not just the price chart.</text>
+  <text x="80" y="530" fill="#7d8078" font-family="system-ui, sans-serif" font-size="20">Education only. No financial advice. No guaranteed profits.</text>
+</svg>
